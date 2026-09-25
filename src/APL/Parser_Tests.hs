@@ -83,6 +83,7 @@ tests =
           parserTest "x (y z)" $ Apply (Var "x") (Apply (Var "y") (Var "z")),
           parserTest "put x y" $ KvPut (Var "x") (Var "y"),
           parserTest "get x + y" $ Add (KvGet (Var "x")) (Var "y"),
+          parserTestFail "x get x",
           parserTest "getx" $ Var "getx",
           parserTest "print \"foo\" x" $ Print "foo" (Var "x"),
           parserTestFail "print \"hello...",
