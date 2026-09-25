@@ -115,7 +115,7 @@ pFunExp = choice [ pBFunExp, pAtom >>= chain ]
         pure x
       ]
 
--- CtrlExp ::= "if" FunExp "then" FunExp "else" FunExp
+-- CtrlExp ::= "if" Exp "then" Exp "else" Exp
 --           | FunExp
 pCtrlExp :: Parser Exp
 pCtrlExp = choice $
