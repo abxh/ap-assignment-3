@@ -59,6 +59,10 @@ pBool =
       const False <$> lKeyword "false"
     ]
 
+-- Atom ::= Int
+--        | Bool
+--        | Var
+--        | "(" Exp ")"
 pAtom :: Parser Exp
 pAtom =
   choice
@@ -68,66 +72,73 @@ pAtom =
       lString "(" *> pExp <* lString ")"
     ]
 
+-- FunExp ::= Atom Atom
+--          | Atom
+pFunExp :: Parser Exp
+pFunExp = pAtom >>= chain
+  where 
+    chain x = choice $
+      [ do
+          y <- pAtom
+          chain $ Apply x y,
+        pure x
+      ]
 
-
-
-pLExp :: Parser Exp
-pLExp =
+-- CtrlExp ::= if Exp then Exp else Exp
+--           | FunExp
+pCtrlExp :: Parser Exp
+pCtrlExp =
   choice
     [ If
         <$> (lKeyword "if" *> pExp)
         <*> (lKeyword "then" *> pExp)
         <*> (lKeyword "else" *> pExp),
-      fExp
+      pFunExp
     ]
 
-pExp1 :: Parser Exp
-pExp1 = pLExp >>= chain
+-- FacExp ::= CtrlExp "*" CtrlExp
+--          | CtrlExp "/" CtrlExp
+--          | CtrlExp
+pFacExp :: Parser Exp
+pFacExp = pCtrlExp >>= chain
   where
     chain x =
       choice
         [ do
             lString "*"
-            y <- pLExp
+            y <- pCtrlExp
             chain $ Mul x y,
           do
             lString "/"
-            y <- pLExp
+            y <- pCtrlExp
             chain $ Div x y,
           pure x
         ]
 
-pExp0 :: Parser Exp
-pExp0 = pExp1 >>= chain
+-- TermExp ::= FacExp "+" FacExp
+--           | FacExp "-" FacExp
+--           | FacExp
+pTermExp :: Parser Exp
+pTermExp = pFacExp >>= chain
   where
     chain x =
       choice
         [ do
             lString "+"
-            y <- pExp1
+            y <- pFacExp
             chain $ Add x y,
           do
             lString "-"
-            y <- pExp1
+            y <- pFacExp
             chain $ Sub x y,
           pure x
         ]
 
+-- Exp ::= TermExp
 pExp :: Parser Exp
-pExp = pExp0
+pExp = pTermExp
 
 parseAPL :: FilePath -> String -> Either String Exp
 parseAPL fname s = case parse (space *> pExp <* eof) fname s of
   Left err -> Left $ errorBundlePretty err
   Right x -> Right x
-
-fExp :: Parser Exp
-fExp = pAtom >>= chain
-  where 
-    chain x =
-      choice 
-        [ do
-            y <- pAtom
-            chain $ Apply x y,
-          pure x
-        ]
