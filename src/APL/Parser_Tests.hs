@@ -39,7 +39,8 @@ tests =
         [ parserTest "x+y" $ Add (Var "x") (Var "y"),
           parserTest "x-y" $ Sub (Var "x") (Var "y"),
           parserTest "x*y" $ Mul (Var "x") (Var "y"),
-          parserTest "x/y" $ Div (Var "x") (Var "y")
+          parserTest "x/y" $ Div (Var "x") (Var "y"),
+          parserTest "x**y" $ Pow (Var "x") (Var "y")
         ],
       testGroup
         "Operator priority"
@@ -47,7 +48,14 @@ tests =
           parserTest "x+y-z" $ Sub (Add (Var "x") (Var "y")) (Var "z"),
           parserTest "x+y*z" $ Add (Var "x") (Mul (Var "y") (Var "z")),
           parserTest "x*y*z" $ Mul (Mul (Var "x") (Var "y")) (Var "z"),
-          parserTest "x/y/z" $ Div (Div (Var "x") (Var "y")) (Var "z")
+          parserTest "x/y/z" $ Div (Div (Var "x") (Var "y")) (Var "z"),
+          parserTest "x**y**z" $ Pow (Var "x") (Pow (Var "y") (Var "z")),
+          parserTest "x*y**z" $ Mul (Var "x") (Pow (Var "y") (Var "z"))
+        ],
+      testGroup
+        "Boolean expressions"
+        [ parserTest "x+y==y+x" $ (Eql (Add (Var "x") (Var "y")) (Add (Var "y") (Var "x"))),
+          parserTest "x==x+0==0+x" $ (Eql (Eql (Var "x") (Add (Var "x") (CstInt 0))) (Add (CstInt 0) (Var "x")))
         ],
       testGroup
         "Conditional expressions"
@@ -58,7 +66,8 @@ tests =
           parserTest "if x then (if x then y else z) else z" $
             If (Var "x") (If (Var "x") (Var "y") (Var "z")) (Var "z"),
           parserTest "1 + if x then y else z" $
-            Add (CstInt 1) (If (Var "x") (Var "y") (Var "z"))
+            Add (CstInt 1) (If (Var "x") (Var "y") (Var "z")),
+          parserTest "if x == 1 then y else z" $ If (Eql (Var "x") (CstInt 1)) (Var "y") (Var "z")
         ],
       testGroup
         "Lexing edge cases"
@@ -70,6 +79,5 @@ tests =
         [ parserTest "x y z" $ Apply (Apply (Var "x") (Var "y")) (Var "z"),
           parserTestFail "x if x then y else z",
           parserTest "x (y z)" $ Apply (Var "x") (Apply (Var "y") (Var "z"))
-        ]
-
+        ] 
     ]

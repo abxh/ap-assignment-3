@@ -93,20 +93,34 @@ pCtrlExp = choice $
     pFunExp
   ]
 
--- FacExp ::= FacExp "*" CtrlExp
---          | FacExp "/" CtrlExp
+-- PowExp ::= CtrlExp "**" PowExp
 --          | CtrlExp
+pPowExp :: Parser Exp
+pPowExp = pCtrlExp >>= chain
+  where
+    chain x = choice $
+      [
+        do
+          lString "**"
+          y <- pPowExp 
+          chain $ Pow x y,
+        pure x
+      ]
+
+-- FacExp ::= FacExp "*" PowExp
+--          | FacExp "/" PowExp
+--          | PowExp
 pFacExp :: Parser Exp
-pFacExp = pCtrlExp >>= chain
+pFacExp = pPowExp >>= chain
   where
     chain x = choice $
       [ do
           lString "*"
-          y <- pCtrlExp
+          y <- pPowExp
           chain $ Mul x y,
         do
           lString "/"
-          y <- pCtrlExp
+          y <- pPowExp
           chain $ Div x y,
         pure x
       ]
@@ -129,9 +143,23 @@ pTermExp = pFacExp >>= chain
         pure x
       ]
 
+-- BoolExp ::= BoolExp "==" TermExp
+--           | TermExp
+pBoolExp :: Parser Exp
+pBoolExp = pTermExp >>= chain
+  where
+    chain x = choice $
+      [
+        do
+          lString "=="
+          y <- pTermExp
+          chain $ Eql x y,
+        pure x
+      ]
+
 -- Exp ::= TermExp
 pExp :: Parser Exp
-pExp = pTermExp
+pExp = pBoolExp
 
 parseAPL :: FilePath -> String -> Either String Exp
 parseAPL fname s = case parse (space *> pExp <* eof) fname s of
