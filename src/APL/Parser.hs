@@ -102,10 +102,10 @@ pBFunExp = choice $
   ]
 
 -- FunExp ::= BFunExp
---          | pFunExp'
+--          | FunExp'
 --
--- pFunExp' := Atom
---           | FunExp Atom
+-- FunExp' ::= Atom
+--           | FunExp' Atom
 pFunExp :: Parser Exp
 pFunExp = choice [ pBFunExp, pFunExp' ]
   where 
