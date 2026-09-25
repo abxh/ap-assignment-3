@@ -68,6 +68,9 @@ pAtom =
       lString "(" *> pExp <* lString ")"
     ]
 
+
+
+
 pLExp :: Parser Exp
 pLExp =
   choice
@@ -75,7 +78,7 @@ pLExp =
         <$> (lKeyword "if" *> pExp)
         <*> (lKeyword "then" *> pExp)
         <*> (lKeyword "else" *> pExp),
-      pAtom
+      fExp
     ]
 
 pExp1 :: Parser Exp
@@ -117,3 +120,14 @@ parseAPL :: FilePath -> String -> Either String Exp
 parseAPL fname s = case parse (space *> pExp <* eof) fname s of
   Left err -> Left $ errorBundlePretty err
   Right x -> Right x
+
+fExp :: Parser Exp
+fExp = pAtom >>= chain
+  where 
+    chain x =
+      choice 
+        [ do
+            y <- pAtom
+            chain $ Apply x y,
+          pure x
+        ]
