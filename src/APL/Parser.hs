@@ -33,7 +33,14 @@ keywords =
     "false",
     "print",
     "get",
-    "put"
+    "put",
+    "try",
+    "catch",
+    "let",
+    "in",
+    "loop",
+    "for",
+    "do"
   ]
 
 lVName :: Parser VName
@@ -119,6 +126,10 @@ pFunExp = choice [ pBFunExp, pFunExp' ]
       ]
 
 -- CtrlExp ::= "if" Exp "then" Exp "else" Exp
+--           | "\" var "->" Exp
+--           | "try" Exp "catch" Exp
+--           | "let" var "=" Exp "in" Exp
+--           | "loop" var "=" Exp "for" var "<" Exp "do" Exp
 --           | FunExp
 pCtrlExp :: Parser Exp
 pCtrlExp = choice $

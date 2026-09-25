@@ -70,23 +70,33 @@ tests =
           parserTest "if x == 1 then y else z" $ If (Eql (Var "x") (CstInt 1)) (Var "y") (Var "z"),
           parserTest "if x then y z else z" $ If (Var "x") (Apply (Var "y") (Var "z")) (Var "z")
         ],
+      testGroup 
+        "Let Expressions"
+        [ parserTest "let x = y in z" $ Let "x" (Var "y") (Var "z"),
+          parserTestFail "let true = y in z",
+          parserTestFail "x let v = 2 in v"
+        ],
+      testGroup
+        "Function Expressions/Application"
+        [ parserTest "x y z" $ Apply (Apply (Var "x") (Var "y")) (Var "z"),
+          parserTestFail "x if x then y else z",
+          parserTest "x (y z)" $ Apply (Var "x") (Apply (Var "y") (Var "z")),
+          parserTest "put x y" $ KvPut (Var "x") (Var "y"),
+          parserTest "get x + y" $ Add (KvGet (Var "x")) (Var "y"),
+          parserTest "getx" $ Var "getx",
+          parserTest "print \"foo\" x" $ Print "foo" (Var "x"),
+          parserTestFail "print \"hello...",
+          parserTest "\\x -> x + x" $ Lambda "x" (Add (Var "x") (Var "x")),
+          parserTest "(\\x -> x) + x" $ Add (Lambda "x" (Var "x")) (Var "x")
+        ],
+      testGroup 
+        "Loop"
+        [ parserTest "loop x = if y == 1 then 0 else 1 for i < 7 do x+1" $
+            ForLoop ("x", (If (Eql (Var "y") (CstInt 1)) (CstInt 0) (CstInt 1))) ("i", CstInt 7) (Add (Var "x") (CstInt 1))
+        ],
       testGroup
         "Lexing edge cases"
         [ parserTest "2 " $ CstInt 2,
           parserTest " 2" $ CstInt 2
-        ],
-      testGroup
-        "Function Application"
-        [ parserTest "x y z" $ Apply (Apply (Var "x") (Var "y")) (Var "z"),
-          parserTestFail "x if x then y else z",
-          parserTest "x (y z)" $ Apply (Var "x") (Apply (Var "y") (Var "z"))
-        ],
-      testGroup
-        "Built-in Functions"
-        [ parserTest "put x y" $ KvPut (Var "x") (Var "y"),
-          parserTest "get x + y" $ Add (KvGet (Var "x")) (Var "y"),
-          parserTest "getx" $ Var "getx",
-          parserTest "print \"foo\" x" $ Print "foo" (Var "x"),
-          parserTestFail "print \"hello..."
-        ] 
+        ]
     ]
