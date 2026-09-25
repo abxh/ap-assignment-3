@@ -87,7 +87,7 @@ pAtom = choice $
     lString "(" *> pExp <* lString ")"
   ]
 
--- BFunExp := "print" string Atom
+-- BFunExp := "print" String Atom
 --          | "get" Atom
 --          | "set" Atom Atom
 pBFunExp :: Parser Exp
@@ -126,10 +126,10 @@ pFunExp = choice [ pBFunExp, pFunExp' ]
       ]
 
 -- CtrlExp ::= "if" Exp "then" Exp "else" Exp
---           | "\" var "->" Exp
+--           | "\" Var "->" Exp
 --           | "try" Exp "catch" Exp
---           | "let" var "=" Exp "in" Exp
---           | "loop" var "=" Exp "for" var "<" Exp "do" Exp
+--           | "let" Var "=" Exp "in" Exp
+--           | "loop" Var "=" Exp "for" Var "<" Exp "do" Exp
 --           | FunExp
 pCtrlExp :: Parser Exp
 pCtrlExp = choice $
