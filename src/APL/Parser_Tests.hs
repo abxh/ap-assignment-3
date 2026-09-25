@@ -67,7 +67,8 @@ tests =
             If (Var "x") (If (Var "x") (Var "y") (Var "z")) (Var "z"),
           parserTest "1 + if x then y else z" $
             Add (CstInt 1) (If (Var "x") (Var "y") (Var "z")),
-          parserTest "if x == 1 then y else z" $ If (Eql (Var "x") (CstInt 1)) (Var "y") (Var "z")
+          parserTest "if x == 1 then y else z" $ If (Eql (Var "x") (CstInt 1)) (Var "y") (Var "z"),
+          parserTest "if x then y z else z" $ If (Var "x") (Apply (Var "y") (Var "z")) (Var "z")
         ],
       testGroup
         "Lexing edge cases"
@@ -79,5 +80,13 @@ tests =
         [ parserTest "x y z" $ Apply (Apply (Var "x") (Var "y")) (Var "z"),
           parserTestFail "x if x then y else z",
           parserTest "x (y z)" $ Apply (Var "x") (Apply (Var "y") (Var "z"))
+        ],
+      testGroup
+        "Built-in Functions"
+        [ parserTest "put x y" $ KvPut (Var "x") (Var "y"),
+          parserTest "get x + y" $ Add (KvGet (Var "x")) (Var "y"),
+          parserTest "getx" $ Var "getx",
+          parserTest "print \"foo\" x" $ Print "foo" (Var "x"),
+          parserTestFail "print \"hello..."
         ] 
     ]

@@ -30,7 +30,10 @@ keywords =
     "then",
     "else",
     "true",
-    "false"
+    "false",
+    "print",
+    "get",
+    "put"
   ]
 
 lVName :: Parser VName
@@ -41,6 +44,13 @@ lVName = lexeme $ try $ do
   if v `elem` keywords
     then fail "Unexpected keyword"
     else pure v
+
+lSLiteral :: Parser String
+lSLiteral = lexeme $ try $ do
+  _ <- satisfy (=='\"')
+  cs <- many $ satisfy (\c -> c /= '\"')
+  _ <- satisfy (=='\"')
+  pure cs
 
 lInteger :: Parser Integer
 lInteger =
@@ -70,19 +80,42 @@ pAtom = choice $
     lString "(" *> pExp <* lString ")"
   ]
 
--- FunExp ::= FunExp Atom
+-- BFunExp := "print" string Atom
+--          | "get" Atom
+--          | "set" Atom Atom
+pBFunExp :: Parser Exp
+pBFunExp = choice $
+  [ do
+      lKeyword "print"
+      s <- lSLiteral
+      a <- pAtom
+      pure (Print s a),
+    do
+      lKeyword "get"
+      a <- pAtom
+      pure (KvGet a),
+    do
+      lKeyword "put"
+      a0 <- pAtom
+      a1 <- pAtom
+      pure (KvPut a0 a1)
+  ]
+
+-- FunExp ::= BFunExp
 --          | Atom
+--          | FunExp Atom
 pFunExp :: Parser Exp
-pFunExp = pAtom >>= chain
+pFunExp = choice [ pBFunExp, pAtom >>= chain ]
   where 
     chain x = choice $
-      [ do
+      [
+        do
           y <- pAtom
           chain $ Apply x y,
         pure x
       ]
 
--- CtrlExp ::= if Exp then Exp else Exp
+-- CtrlExp ::= "if" FunExp "then" FunExp "else" FunExp
 --           | FunExp
 pCtrlExp :: Parser Exp
 pCtrlExp = choice $
@@ -157,7 +190,8 @@ pBoolExp = pTermExp >>= chain
         pure x
       ]
 
--- Exp ::= TermExp
+-- Exp ::=
+--       | BoolExp
 pExp :: Parser Exp
 pExp = pBoolExp
 
