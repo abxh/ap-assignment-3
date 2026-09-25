@@ -53,24 +53,22 @@ lKeyword :: String -> Parser ()
 lKeyword s = lexeme $ void $ try $ chunk s <* notFollowedBy (satisfy isAlphaNum)
 
 pBool :: Parser Bool
-pBool =
-  choice $
-    [ const True <$> lKeyword "true",
-      const False <$> lKeyword "false"
-    ]
+pBool = choice $
+  [ const True <$> lKeyword "true",
+    const False <$> lKeyword "false"
+  ]
 
 -- Atom ::= Int
 --        | Bool
 --        | Var
 --        | "(" Exp ")"
 pAtom :: Parser Exp
-pAtom =
-  choice
-    [ CstInt <$> lInteger,
-      CstBool <$> pBool,
-      Var <$> lVName,
-      lString "(" *> pExp <* lString ")"
-    ]
+pAtom = choice $
+  [ CstInt <$> lInteger,
+    CstBool <$> pBool,
+    Var <$> lVName,
+    lString "(" *> pExp <* lString ")"
+  ]
 
 -- FunExp ::= FunExp Atom
 --          | Atom
@@ -87,14 +85,13 @@ pFunExp = pAtom >>= chain
 -- CtrlExp ::= if Exp then Exp else Exp
 --           | FunExp
 pCtrlExp :: Parser Exp
-pCtrlExp =
-  choice
-    [ If
-        <$> (lKeyword "if" *> pExp)
-        <*> (lKeyword "then" *> pExp)
-        <*> (lKeyword "else" *> pExp),
-      pFunExp
-    ]
+pCtrlExp = choice $
+  [ If
+      <$> (lKeyword "if" *> pExp)
+      <*> (lKeyword "then" *> pExp)
+      <*> (lKeyword "else" *> pExp),
+    pFunExp
+  ]
 
 -- FacExp ::= FacExp "*" CtrlExp
 --          | FacExp "/" CtrlExp
@@ -102,18 +99,17 @@ pCtrlExp =
 pFacExp :: Parser Exp
 pFacExp = pCtrlExp >>= chain
   where
-    chain x =
-      choice
-        [ do
-            lString "*"
-            y <- pCtrlExp
-            chain $ Mul x y,
-          do
-            lString "/"
-            y <- pCtrlExp
-            chain $ Div x y,
-          pure x
-        ]
+    chain x = choice $
+      [ do
+          lString "*"
+          y <- pCtrlExp
+          chain $ Mul x y,
+        do
+          lString "/"
+          y <- pCtrlExp
+          chain $ Div x y,
+        pure x
+      ]
 
 -- TermExp ::= TermExp "+" FacExp
 --           | TermExp "-" FacExp
@@ -121,18 +117,17 @@ pFacExp = pCtrlExp >>= chain
 pTermExp :: Parser Exp
 pTermExp = pFacExp >>= chain
   where
-    chain x =
-      choice
-        [ do
-            lString "+"
-            y <- pFacExp
-            chain $ Add x y,
-          do
-            lString "-"
-            y <- pFacExp
-            chain $ Sub x y,
-          pure x
-        ]
+    chain x = choice $
+      [ do
+          lString "+"
+          y <- pFacExp
+          chain $ Add x y,
+        do
+          lString "-"
+          y <- pFacExp
+          chain $ Sub x y,
+        pure x
+      ]
 
 -- Exp ::= TermExp
 pExp :: Parser Exp
