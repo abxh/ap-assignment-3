@@ -102,12 +102,15 @@ pBFunExp = choice $
   ]
 
 -- FunExp ::= BFunExp
---          | Atom
---          | FunExp Atom
+--          | pFunExp'
+--
+-- pFunExp' := Atom
+--           | FunExp Atom
 pFunExp :: Parser Exp
-pFunExp = choice [ pBFunExp, pAtom >>= chain ]
+pFunExp = choice [ pBFunExp, pFunExp' ]
   where 
-    chain x = choice $
+    pFunExp' = pAtom >>= chain
+    chain x  = choice $
       [
         do
           y <- pAtom
@@ -190,8 +193,7 @@ pBoolExp = pTermExp >>= chain
         pure x
       ]
 
--- Exp ::=
---       | BoolExp
+-- Exp ::= BoolExp
 pExp :: Parser Exp
 pExp = pBoolExp
 
