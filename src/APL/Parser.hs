@@ -72,7 +72,7 @@ pAtom =
       lString "(" *> pExp <* lString ")"
     ]
 
--- FunExp ::= Atom Atom
+-- FunExp ::= FunExp Atom
 --          | Atom
 pFunExp :: Parser Exp
 pFunExp = pAtom >>= chain
@@ -96,8 +96,8 @@ pCtrlExp =
       pFunExp
     ]
 
--- FacExp ::= CtrlExp "*" CtrlExp
---          | CtrlExp "/" CtrlExp
+-- FacExp ::= FacExp "*" CtrlExp
+--          | FacExp "/" CtrlExp
 --          | CtrlExp
 pFacExp :: Parser Exp
 pFacExp = pCtrlExp >>= chain
@@ -115,8 +115,8 @@ pFacExp = pCtrlExp >>= chain
           pure x
         ]
 
--- TermExp ::= FacExp "+" FacExp
---           | FacExp "-" FacExp
+-- TermExp ::= TermExp "+" FacExp
+--           | TermExp "-" FacExp
 --           | FacExp
 pTermExp :: Parser Exp
 pTermExp = pFacExp >>= chain
