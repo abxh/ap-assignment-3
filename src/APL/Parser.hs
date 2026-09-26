@@ -137,6 +137,20 @@ pCtrlExp = choice $
       <$> (lKeyword "if" *> pExp)
       <*> (lKeyword "then" *> pExp)
       <*> (lKeyword "else" *> pExp),
+    Lambda
+      <$> (lString "\\" *> lVName)
+      <*> (lString "->" *> pExp),
+    TryCatch
+      <$> (lKeyword "try" *> pExp)
+      <*> (lKeyword "catch" *> pExp),
+    Let
+      <$> (lKeyword "let" *> lVName)
+      <*> (lString "=" *> pExp)
+      <*> (lKeyword "in" *> pExp),
+    ForLoop
+      <$> ((,) <$> (lKeyword "loop" *> (lVName )) <*> (lString "=" *> pExp))
+      <*> ((,) <$> (lString "for" *> lVName) <*> (lString "<" *> pExp))
+      <*> (lString "do" *> pExp),
     pFunExp
   ]
 

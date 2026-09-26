@@ -99,5 +99,15 @@ tests =
         "Lexing edge cases"
         [ parserTest "2 " $ CstInt 2,
           parserTest " 2" $ CstInt 2
+        ],
+
+      testGroup
+        "Task 4 expression parser"
+        [
+          parserTest "\\x-> x + x" $ Lambda "x" (Add (Var "x") (Var "x")),
+          parserTest "(\\x-> x) + x" $ Add (Lambda "x" (Var "x")) (Var "x"),
+          parserTestFail "x let v = 2 in v",
+          parserTest "try x catch y" $ TryCatch (Var "x") (Var "y"),
+          parserTest "loop v = x for i < y do z" $ ForLoop ("v", Var "x") ("i", Var "y") (Var "z")
         ]
     ]
